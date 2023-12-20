@@ -56,6 +56,34 @@ def display_random_image(class_names, images, labels):
     plt.title('Image #{} : '.format(index) + class_names[labels[index]])
     plt.show()
 
+
+
+def plot_accuracy_loss(history):
+    """
+        Plot the accuracy and the loss during the training of the nn.
+    """
+    fig = plt.figure(figsize=(10,5))
+
+    # Plot accuracy
+    plt.subplot(221)
+    plt.plot(history.history['acc'],'bo--', label = "acc")
+    plt.plot(history.history['val_acc'], 'ro--', label = "val_acc")
+    plt.title("train_acc vs val_acc")
+    plt.ylabel("accuracy")
+    plt.xlabel("epochs")
+    plt.legend()
+
+    # Plot loss function
+    plt.subplot(222)
+    plt.plot(history.history['loss'],'bo--', label = "loss")
+    plt.plot(history.history['val_loss'], 'ro--', label = "val_loss")
+    plt.title("train_loss vs val_loss")
+    plt.ylabel("loss")
+    plt.xlabel("epochs")
+
+    plt.legend()
+    plt.show()
+
 class_names = ['astilbe', 'bellflower', 'black_eyed_susan', 'calendula', 'california_poppy']
 # , 'carnation', 'common_daisy', 'coreopsis', 'dandelion', 'iris', 'rose', 'sunflower', 'tulip', 'water_lily'
 class_names_label = {class_name:i for i, class_name in enumerate(class_names)}
@@ -94,3 +122,30 @@ test_images = test_images / 255.0
 display_random_image(class_names, train_images, train_labels)
 
 
+#model
+
+"""
+Conv2D: (32 фильтра размером 3 на 3). Характеристики будут «извлечены» из изображения.
+MaxPooling2D: изображения уменьшаются вдвое.
+Сглаживание: преобразует формат изображений из 2D-массива в 1D-массив из 256-256 3-пиксельных значений.
+Relu: учитывая значение x, возвращает max(x, 0).
+Softmax: 6 нейронов, вероятность принадлежности изображения к одному из классов.
+My mozhem postroit' prostuyu model', sost
+"""
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(32, (3, 3), activation = 'relu', input_shape = (256, 256, 3)), 
+    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(32, (3, 3), activation = 'relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(6, activation=tf.nn.softmax)
+])
+
+
+model.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy', metrics=['accuracy'])
+
+history = model.fit(train_images, train_labels, batch_size=128, epochs=20, validation_split = 0.2)
+
+plot_accuracy_loss(history)
